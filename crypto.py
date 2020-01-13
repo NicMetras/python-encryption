@@ -2,6 +2,7 @@ from Crypto.Cypher import AES
 from Crypto.Protocol.KDF import PBKDF2
 import os
 
+# *** Encryption Functions ***
 def encrypt(text, key, key_size = 256):
     pad = lambda s: s + b"\0" * (AES.block_size - len(s) % AES.block_size)
     text = pad(text)
@@ -17,6 +18,20 @@ def file_encrypt(file_name, key):
         output_file.write(encrypted_text)
     os.remove(file_name)
 
+# *** Decryption Functions ***
+def decrypt(encrypted_text, key):
+    initialization = encrypted_text[:AES.block_size]
+    cipher = AES.new(key, AES.MODE_CBC, initialization)
+    plaintext = cipher.decrypt(ciphertext[AES.block_size:])
+    return plaintext.rstrip(b"\0")
+
+def file_decrypt(file_name, key):
+    with open(file_name, 'rb') as input_file:
+        encrypted_text = input_file.read()
+    decrypted_text = decrypt(encrypted_text, key)
+    with open(file_name[:-4], 'wb') as output_file:
+        output_file.write(decrypted_text)
+    os.remove(file_name)
 
 # This function takes an alphanumeric string as a password and passes it to pycryptodome's PBKDF2 
 # algorithm to generate an encryption key 
